@@ -6,25 +6,31 @@ spawn = require \spawn-command
 tree-kill = require \tree-kill |> promisify
 death = require \death
 
-BOTNET = process.env.BOTNET or \egg
-BOTDIR = resolve (process.argv.lsc.1 or process.cwd!)
+BOTNET = process.env.BOTNET or \cultnet
+BOTDIR = null
 MASTER = resolve "#{__dirname}/.."
 
+export Master = { start }
+
 slaves = {}
-doom-slaves!
-process.chdir MASTER
-patterns = ["#{BOTDIR}/**/*.slave.ls" "#{BOTDIR}/**/*.slave.ts" "#{BOTDIR}/**/*.slave.js"]
-watcher = watch patterns
-watcher.on \add add-slave
-watcher.on \unlink remove-slave
+
+function start botdir
+  console.log "starting cultnet at #{botdir}"
+  BOTDIR := resolve botdir
+  doom-slaves!
+  process.chdir MASTER
+  patterns = ["#{BOTDIR}/**/*.slave.ls" "#{BOTDIR}/**/*.slave.ts" "#{BOTDIR}/**/*.slave.js"]
+  watcher = watch patterns
+  watcher.on \add add-slave
+  watcher.on \unlink remove-slave
 
 function add-slave path
   if not /\.slave\./.test path then return
   console.log "adding slave #{path}"
-  cmd = "#{MASTER}/node_modules/@cultnet/slave-node/bin/cultnet-slave-node --respawn --no-notify --require #{MASTER}/node_modules/livescript --require #{MASTER}/node_modules/tsconfig-paths/register #{path}"
+  cmd = "#{MASTER}/node_modules/@cultnet/slave-node/bin/cultnet-slave-node --respawn --no-notify #{path}"
   console.log "$ " + cmd
   slave =
-    process: spawn cmd, { stdio: \inherit, detached: true }
+    process: spawn cmd, { stdio: \inherit, +detached }
   slaves[path] = slave
   slave.process.on \exit ->
     console.log "slave died #{path}"
