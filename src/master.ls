@@ -20,7 +20,7 @@ function start botdir
   doom-slaves!
   process.chdir MASTER
   patterns = ["#{BOTDIR}/**/*.slave.ls" "#{BOTDIR}/**/*.slave.ts" "#{BOTDIR}/**/*.slave.js"]
-  watcher = watch patterns
+  watcher = watch patterns, { ignored: /node_modules/ }
   watcher.on \add add-slave
   watcher.on \unlink remove-slave
 
